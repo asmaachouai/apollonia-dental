@@ -1,0 +1,124 @@
+# 🦷 Apollonia Dental Practice — Employee Management App
+
+Full-stack MERN application for managing the staff and departments of Apollonia Dental Practice.
+
+## Pre-loaded Data (from Business Briefing)
+
+### 5 Departments
+| Department | Employees |
+|---|---|
+| General Dentistry | Alfred Christensen, John Dudley, Janet Doe |
+| Pediatric Dentistry | Francisco Willard, Sarah Alvarez |
+| Restorative Dentistry | Lisa Harris ★, Danny Perez |
+| Surgery | Constance Smith |
+| Orthodontics | Leslie Roche, Lisa Harris ★ |
+
+★ **Lisa Harris** is assigned to both Restorative Dentistry AND Orthodontics (multi-department).  
+⚠️ **Travis Combs** has no department assigned in the briefing — appears as "Unassigned" in the app.
+
+### Default Admin Account
+- **Email:** admin@apollonia.com  
+- **Password:** Admin1234!
+
+---
+
+## Tech Stack
+- **Frontend:** React 18 + Vite + Tailwind CSS
+- **Backend:** Node.js + Express.js
+- **Database:** MongoDB + Mongoose
+- **Auth:** JWT (JSON Web Tokens)
+- **Containerization:** Docker + Docker Compose
+
+---
+
+## 🚀 Quick Start
+
+### Option A — Docker (recommended)
+
+```bash
+# 1. Clone / unzip the project
+cd apollonia
+
+# 2. Start everything (DB + backend + frontend + auto-seed)
+docker-compose up --build
+
+# App:  http://localhost:3000
+# API:  http://localhost:5000
+```
+
+### Option B — Local Development
+
+**Prerequisites:** Node.js 18+, MongoDB running locally
+
+```bash
+# Terminal 1 — Backend
+cd backend
+npm install
+# Edit .env: change MONGO_URI to mongodb://localhost:27017/apollonia
+npm run seed    # Load briefing data
+npm run dev     # http://localhost:5000
+
+# Terminal 2 — Frontend
+cd frontend
+npm install
+npm run dev     # http://localhost:3000
+```
+
+---
+
+## API Endpoints
+
+### Auth
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | /api/auth/register | Create account |
+| POST | /api/auth/login | Login → JWT |
+| GET  | /api/auth/me | Get current user |
+
+### Departments
+| Method | Endpoint | Description |
+|---|---|---|
+| GET    | /api/departments | List all + employee count |
+| GET    | /api/departments/:id | Dept + its employees |
+| POST   | /api/departments | Create |
+| PUT    | /api/departments/:id | Update |
+| DELETE | /api/departments/:id | Delete (blocked if has staff) |
+
+### Employees
+| Method | Endpoint | Description |
+|---|---|---|
+| GET    | /api/employees | List all (filterable) |
+| GET    | /api/employees/:id | Single employee |
+| POST   | /api/employees | Create |
+| PUT    | /api/employees/:id | Update |
+| DELETE | /api/employees/:id | Delete |
+
+**Query params for GET /api/employees:**
+- `?search=harris` — search by name
+- `?department=<id>` — filter by department
+- `?active=true` — filter by active status
+
+---
+
+## Key Design Decisions
+
+1. **Multi-department support** — `departments` is an **array** on the Employee model, allowing staff like Lisa Harris to be assigned to multiple departments simultaneously.
+
+2. **Unassigned employees** — `departments` defaults to `[]`, so Travis Combs (unassigned in briefing) is stored without error. The dashboard flags unassigned staff.
+
+3. **Delete protection** — Deleting a department that still has employees returns a 400 error with a count.
+
+4. **JWT Auth** — All `/api/departments` and `/api/employees` routes are protected. Token expires in 7 days.
+
+---
+
+## Phase 2 Roadmap (from briefing)
+
+Future collections to add:
+- `patients` — assigned to staff members
+- `trainings` — specializations per staff
+- `projects` — current projects per staff  
+- `revenue` — per patient and per staff member
+- `appointments` — scheduling
+
+All Phase 2 fields are already considered in the Employee model.
