@@ -1,124 +1,292 @@
-# 🦷 Apollonia Dental Practice — Employee Management App
+# 🦷 Apollonia Dental Practice — Management System
 
-Full-stack MERN application for managing the staff and departments of Apollonia Dental Practice.
-
-## Pre-loaded Data (from Business Briefing)
-
-### 5 Departments
-| Department | Employees |
-|---|---|
-| General Dentistry | Alfred Christensen, John Dudley, Janet Doe |
-| Pediatric Dentistry | Francisco Willard, Sarah Alvarez |
-| Restorative Dentistry | Lisa Harris ★, Danny Perez |
-| Surgery | Constance Smith |
-| Orthodontics | Leslie Roche, Lisa Harris ★ |
-
-★ **Lisa Harris** is assigned to both Restorative Dentistry AND Orthodontics (multi-department).  
-⚠️ **Travis Combs** has no department assigned in the briefing — appears as "Unassigned" in the app.
-
-### Default Admin Account
-- **Email:** admin@apollonia.com  
-- **Password:** Admin1234!
+A full-stack MERN application for managing a dental practice, featuring role-based access control, patient management, appointments, meetings, and real-time notifications.
 
 ---
 
-## Tech Stack
-- **Frontend:** React 18 + Vite + Tailwind CSS
-- **Backend:** Node.js + Express.js
-- **Database:** MongoDB + Mongoose
-- **Auth:** JWT (JSON Web Tokens)
-- **Containerization:** Docker + Docker Compose
+## 🚀 Tech Stack
+
+| Layer     | Technology                              |
+|-----------|-----------------------------------------|
+| Frontend  | React 18 · Vite · Tailwind CSS v3       |
+| Backend   | Node.js · Express.js                    |
+| Database  | MongoDB · Mongoose                      |
+| Auth      | JWT (jsonwebtoken) · bcryptjs           |
+| HTTP      | Axios                                   |
 
 ---
 
-## 🚀 Quick Start
+## 📁 Project Structure
 
-### Option A — Docker (recommended)
-
-```bash
-# 1. Clone / unzip the project
-cd apollonia
-
-# 2. Start everything (DB + backend + frontend + auto-seed)
-docker-compose up --build
-
-# App:  http://localhost:3000
-# API:  http://localhost:5000
+```
+apollonia-dental/
+├── backend/
+│   ├── app.js                  # Entry point
+│   ├── .env                    # Environment variables
+│   ├── config/
+│   │   └── db.js               # MongoDB connection
+│   ├── middleware/
+│   │   └── auth.js             # JWT protect + adminOnly
+│   ├── models/
+│   │   ├── User.js             # admin · doctor · staff · receptionist
+│   │   ├── Employee.js         # Linked to User via userId
+│   │   ├── Department.js       # name · description · color
+│   │   ├── Patient.js          # Full patient profile
+│   │   ├── Appointment.js      # patient · doctor · date · status
+│   │   ├── Meeting.js          # title · participants · createdBy
+│   │   ├── MedicalRecord.js    # diagnosis · treatment · prescription
+│   │   └── Notification.js     # in-app notifications
+│   ├── routes/
+│   │   ├── auth.js             # login · register (admin) · user CRUD
+│   │   ├── employees.js        # CRUD + available/users endpoint
+│   │   ├── departments.js      # CRUD + employeeCount
+│   │   ├── patients.js         # CRUD + medical records
+│   │   ├── appointments.js     # CRUD + auto notifications
+│   │   ├── meetings.js         # CRUD (admin creates)
+│   │   ├── notifications.js    # read · mark as read
+│   │   └── profile.js          # update own profile
+│   └── seed/
+│       └── seed.js             # Full test dataset
+│
+└── frontend/
+    ├── index.html
+    ├── vite.config.js          # Proxy /api → localhost:5000
+    ├── tailwind.config.js
+    └── src/
+        ├── App.jsx             # Routes with role guards
+        ├── index.css           # Global styles + Tailwind
+        ├── api/
+        │   └── axios.js        # Base URL + JWT interceptor
+        ├── context/
+        │   ├── AuthContext.jsx  # Auth state + localStorage
+        │   └── NotifContext.jsx # Notifications polling (30s)
+        ├── components/
+        │   ├── Navbar.jsx           # Role router
+        │   ├── AdminNavbar.jsx
+        │   ├── DoctorNavbar.jsx     # With unread badge
+        │   └── ReceptionistNavbar.jsx # With unread badge
+        └── pages/
+            ├── Login.jsx
+            ├── Dashboard.jsx        # 3 personalized dashboards
+            ├── Users.jsx            # Admin only
+            ├── Employees.jsx        # Admin only
+            ├── Departments.jsx      # Admin only
+            ├── Patients.jsx         # Receptionist CRUD · Doctor read
+            ├── Appointments.jsx     # Receptionist CRUD · Doctor read
+            ├── Meetings.jsx         # Admin CRUD · Doctor read
+            ├── Notifications.jsx    # Doctor + Receptionist
+            └── Profile.jsx          # All roles
 ```
 
-### Option B — Local Development
+---
 
-**Prerequisites:** Node.js 18+, MongoDB running locally
+## 👥 Roles & Permissions
 
+| Feature               | Admin | Doctor | Receptionist |
+|-----------------------|:-----:|:------:|:------------:|
+| Manage Users          | ✅    | ❌     | ❌           |
+| Manage Employees      | ✅    | ❌     | ❌           |
+| Manage Departments    | ✅    | ❌     | ❌           |
+| Create/Edit Patients  | ✅    | ❌     | ✅           |
+| View Patients         | ✅    | ✅     | ✅           |
+| Medical Records       | ✅    | ✅     | ❌           |
+| Create Appointments   | ✅    | ❌     | ✅           |
+| View Appointments     | ✅    | ✅ (own)| ✅ (all)    |
+| Create Meetings       | ✅    | ❌     | ❌           |
+| View Meetings         | ✅    | ✅     | ❌           |
+| Notifications         | ❌    | ✅     | ✅           |
+| Edit Profile          | ✅    | ✅     | ✅           |
+
+---
+
+## 🔔 Notification System
+
+Notifications are triggered automatically:
+
+| Event                        | Notified        |
+|------------------------------|-----------------|
+| Appointment created          | Doctor assigned |
+| Appointment date/time changed| Doctor assigned |
+| Appointment cancelled        | Doctor + Receptionists |
+| Appointment deleted          | Doctor + Receptionists |
+
+Notifications are polled every **30 seconds** and displayed with an unread badge in the navbar.
+
+---
+
+## ⚙️ Installation & Setup
+
+### Prerequisites
+- Node.js v18+
+- MongoDB (local or Atlas)
+
+### 1. Clone the repository
 ```bash
-# Terminal 1 — Backend
+git clone https://github.com/YOUR_USERNAME/apollonia-dental.git
+cd apollonia-dental
+```
+
+### 2. Backend setup
+```bash
 cd backend
 npm install
-# Edit .env: change MONGO_URI to mongodb://localhost:27017/apollonia_db
-npm run seed    # Load briefing data
-npm run dev     # http://localhost:5000
+```
 
-# Terminal 2 — Frontend
-cd frontend
+Create a `.env` file in `backend/`:
+```env
+PORT=5000
+MONGO_URI=mongodb://127.0.0.1:27017/apollonia
+JWT_SECRET=your_super_secret_key_here
+```
+
+### 3. Frontend setup
+```bash
+cd ../frontend
 npm install
-npm run dev     # http://localhost:3000
+```
+
+### 4. Seed the database
+```bash
+cd ../backend
+node seed/seed.js
+```
+
+### 5. Run the application
+
+**Terminal 1 — Backend:**
+```bash
+cd backend
+npm run dev
+```
+
+**Terminal 2 — Frontend:**
+```bash
+cd frontend
+npm run dev
+```
+
+Open [http://localhost:5173](http://localhost:5173)
+
+---
+
+## 🧪 Test Accounts
+
+| Role         | Email                      | Password     |
+|--------------|----------------------------|--------------|
+| Admin        | admin@apollonia.com        | Admin1234!   |
+| Doctor       | sarah@apollonia.com        | Doctor1234!  |
+| Doctor       | alfred@apollonia.com       | Doctor1234!  |
+| Doctor       | john@apollonia.com         | Doctor1234!  |
+| Doctor       | danny@apollonia.com        | Doctor1234!  |
+| Doctor       | lisa@apollonia.com         | Doctor1234!  |
+| Receptionist | janet@apollonia.com        | Recept1234!  |
+| Receptionist | leslie@apollonia.com       | Recept1234!  |
+| Staff        | constance@apollonia.com    | Staff1234!   |
+
+---
+
+## 📊 Seed Data Summary
+
+| Collection    | Count | Details                                    |
+|---------------|-------|--------------------------------------------|
+| Users         | 11    | 1 admin · 5 doctors · 2 receptionists · 2 staff |
+| Employees     | 10    | Linked to users with department assignments |
+| Departments   | 5     | General · Pediatric · Restorative · Surgery · Orthodontics |
+| Patients      | 6     | Full profiles with referring doctor        |
+| Medical Records | 5   | Diagnoses, treatments, prescriptions       |
+| Appointments  | 10    | 3 today · 4 upcoming · 3 past              |
+| Meetings      | 4     | 3 upcoming · 1 past                        |
+| Notifications | 4     | Pre-seeded for testing                     |
+
+---
+
+## 🔌 API Endpoints
+
+### Auth
+```
+POST   /api/auth/login           Public
+POST   /api/auth/register        Admin only
+GET    /api/auth/users           Admin only
+PUT    /api/auth/users/:id       Admin only
+DELETE /api/auth/users/:id       Admin only
+GET    /api/auth/me              Authenticated
+```
+
+### Employees
+```
+GET    /api/employees                   Authenticated
+GET    /api/employees/available/users   Authenticated
+POST   /api/employees                   Authenticated
+PUT    /api/employees/:id               Authenticated
+DELETE /api/employees/:id               Authenticated
+```
+
+### Departments
+```
+GET    /api/departments        Authenticated
+POST   /api/departments        Authenticated
+PUT    /api/departments/:id    Authenticated
+DELETE /api/departments/:id    Authenticated
+```
+
+### Patients
+```
+GET    /api/patients                        Authenticated
+POST   /api/patients                        Admin · Receptionist
+PUT    /api/patients/:id                    Admin · Receptionist
+DELETE /api/patients/:id                    Admin · Receptionist
+GET    /api/patients/:id/records            Authenticated
+POST   /api/patients/:id/records            Admin · Doctor
+PUT    /api/patients/:id/records/:rid       Admin · Doctor
+DELETE /api/patients/:id/records/:rid       Admin · Doctor
+```
+
+### Appointments
+```
+GET    /api/appointments        Authenticated (doctor sees own)
+POST   /api/appointments        Admin · Receptionist
+PUT    /api/appointments/:id    Admin · Receptionist
+DELETE /api/appointments/:id    Admin · Receptionist
+```
+
+### Meetings
+```
+GET    /api/meetings        Authenticated (doctor sees assigned)
+POST   /api/meetings        Admin only
+PUT    /api/meetings/:id    Admin only
+DELETE /api/meetings/:id    Admin only
+```
+
+### Notifications
+```
+GET    /api/notifications              Authenticated
+GET    /api/notifications/unread/count Authenticated
+PUT    /api/notifications/:id/read     Authenticated
+PUT    /api/notifications/read/all     Authenticated
+```
+
+### Profile
+```
+GET    /api/profile    Authenticated
+PUT    /api/profile    Authenticated
 ```
 
 ---
 
-## API Endpoints
+## 🐳 Docker (optional)
 
-### Auth
-| Method | Endpoint | Description |
-|---|---|---|
-| POST | /api/auth/register | Create account |
-| POST | /api/auth/login | Login → JWT |
-| GET  | /api/auth/me | Get current user |
+```bash
+docker-compose up --build
+```
 
-### Departments
-| Method | Endpoint | Description |
-|---|---|---|
-| GET    | /api/departments | List all + employee count |
-| GET    | /api/departments/:id | Dept + its employees |
-| POST   | /api/departments | Create |
-| PUT    | /api/departments/:id | Update |
-| DELETE | /api/departments/:id | Delete (blocked if has staff) |
-
-### Employees
-| Method | Endpoint | Description |
-|---|---|---|
-| GET    | /api/employees | List all (filterable) |
-| GET    | /api/employees/:id | Single employee |
-| POST   | /api/employees | Create |
-| PUT    | /api/employees/:id | Update |
-| DELETE | /api/employees/:id | Delete |
-
-**Query params for GET /api/employees:**
-- `?search=harris` — search by name
-- `?department=<id>` — filter by department
-- `?active=true` — filter by active status
+Services: `mongo` · `backend` (port 5000) · `frontend` (port 5173)
 
 ---
 
-## Key Design Decisions
+## 📝 Notes
 
-1. **Multi-department support** — `departments` is an **array** on the Employee model, allowing staff like Lisa Harris to be assigned to multiple departments simultaneously.
-
-2. **Unassigned employees** — `departments` defaults to `[]`, so Travis Combs (unassigned in briefing) is stored without error. The dashboard flags unassigned staff.
-
-3. **Delete protection** — Deleting a department that still has employees returns a 400 error with a count.
-
-4. **JWT Auth** — All `/api/departments` and `/api/employees` routes are protected. Token expires in 7 days.
-
----
-
-## Phase 2 Roadmap (from briefing)
-
-Future collections to add:
-- `patients` — assigned to staff members
-- `trainings` — specializations per staff
-- `projects` — current projects per staff  
-- `revenue` — per patient and per staff member
-- `appointments` — scheduling
-
-All Phase 2 fields are already considered in the Employee model.
+- After running `seed.js`, clear localStorage in the browser before logging in
+- JWT tokens expire after **7 days**
+- Notifications are polled every **30 seconds** (no WebSocket required)
+- The `receptionist` role cannot access Meetings or medical records
+- Deleting a patient also deletes all associated medical records
