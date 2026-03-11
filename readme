@@ -54,7 +54,7 @@ docker-compose up --build
 # Terminal 1 — Backend
 cd backend
 npm install
-# Edit .env: change MONGO_URI to mongodb://localhost:27017/apollonia
+# Edit .env: change MONGO_URI to mongodb://localhost:27017/apollonia_db
 npm run seed    # Load briefing data
 npm run dev     # http://localhost:5000
 
