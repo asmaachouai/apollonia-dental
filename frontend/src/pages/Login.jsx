@@ -55,10 +55,6 @@ export default function Login() {
               {loading ? 'Signing in…' : 'Sign In'}
             </button>
           </form>
-
-          <div className="mt-6 bg-slate-50 rounded-xl p-3 text-xs text-slate-400 text-center">
-            Admin: admin@apollonia.com / Admin1234!
-          </div>
         </div>
       </div>
     </div>
